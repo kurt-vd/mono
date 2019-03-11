@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include "mono/utils/mono-static-mutex.h"
 
 /* work around a dlopen issue (bug #75390), undefs to avoid warnings with redefinitions */
 #undef PACKAGE_BUGREPORT
@@ -26,9 +27,16 @@ volatile int nacl_thread_parked[MAX_NACL_GC_THREADS];
 volatile int nacl_thread_used[MAX_NACL_GC_THREADS];
 volatile int nacl_thread_parking_inited = 0;
 volatile int nacl_num_gc_threads = 0;
-pthread_mutex_t nacl_thread_alloc_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t nacl_thread_alloc_lock;
 __thread int nacl_thread_idx = -1;
 __thread GC_thread nacl_gc_thread_self = NULL;
+
+__attribute__((constructor))
+__attribute__((unused))
+static void init_libgc_stop_world_mutex(void)
+{
+      mono_os_static_mutex_init(&nacl_thread_alloc_lock);
+}
 #endif
 
 #if DEBUG_THREADS

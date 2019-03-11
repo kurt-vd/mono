@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <glib.h>
 #include <pthread.h>
+#include "../mono/utils/mono-static-mutex.h"
 
 #ifdef HAVE_PWD_H
 #include <pwd.h>
@@ -39,7 +40,7 @@
 #include <unistd.h>
 #endif
 
-static pthread_mutex_t env_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t env_lock;
 
 /* MONO Comment
  * 
@@ -118,7 +119,7 @@ g_path_is_absolute (const char *filename)
 	return (*filename == '/');
 }
 
-static pthread_mutex_t pw_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t pw_lock;
 static const gchar *home_dir;
 static const gchar *user_name;
 
@@ -178,7 +179,7 @@ g_get_user_name (void)
 
 static const char *tmp_dir;
 
-static pthread_mutex_t tmp_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t tmp_lock;
 
 const gchar *
 g_get_tmp_dir (void)
@@ -201,3 +202,11 @@ g_get_tmp_dir (void)
 	return tmp_dir;
 }
 
+__attribute__((constructor))
+__attribute__((unused))
+static void init_gmisc_mutex(void)
+{
+	mono_os_static_mutex_init(&env_lock);
+	mono_os_static_mutex_init(&pw_lock);
+	mono_os_static_mutex_init(&tmp_lock);
+}
