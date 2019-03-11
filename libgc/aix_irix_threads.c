@@ -38,6 +38,8 @@
 # include <sys/mman.h>
 # include <sys/time.h>
 
+#include "mono/utils/mono-static-mutex.h"
+
 #undef pthread_create
 #undef pthread_sigmask
 #undef pthread_join
@@ -111,10 +113,18 @@ GC_thread GC_lookup_thread(pthread_t id);
 # endif
 #endif
 
-pthread_mutex_t GC_suspend_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t GC_suspend_lock;
 				/* Number of threads stopped so far	*/
-pthread_cond_t GC_suspend_ack_cv = PTHREAD_COND_INITIALIZER;
+pthread_cond_t GC_suspend_ack_cv;
 pthread_cond_t GC_continue_cv = PTHREAD_COND_INITIALIZER;
+
+__attribute__((constructor))
+__attribute__((unused))
+static void init_aix_irix_mutex(void)
+{
+	mono_os_static_mutex_init(&GC_suspend_lock);
+	mono_os_static_mutex_init(&GC_suspend_ack_cv);
+}
 
 void GC_suspend_handler(int sig)
 {

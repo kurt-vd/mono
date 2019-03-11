@@ -34,6 +34,7 @@
 
 #ifndef G_OS_WIN32
 #include <pthread.h>
+#include "../mono/utils/mono-static-mutex.h"
 #endif
 
 #include <errno.h>
@@ -210,7 +211,14 @@ Android is at 133.
 #define str(s) #s
 
 #ifndef G_OS_WIN32
-static pthread_mutex_t strerror_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t strerror_lock;
+
+__attribute__((constructor))
+__attribute__((unused))
+static void init_strerror_mutex(void)
+{
+	mono_os_static_mutex_init(&strerror_lock);
+}
 #endif
 
 static char *error_messages [MONO_ERRNO_MAX];
