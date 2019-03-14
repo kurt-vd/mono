@@ -58,6 +58,7 @@ else
 if HOST_ANDROID
 libeglib_la_LIBADD = -llog
 endif
+libeglib_la_LIBADD = -lpthread
 endif
 
 MAINTAINERCLEANFILES = Makefile.in
